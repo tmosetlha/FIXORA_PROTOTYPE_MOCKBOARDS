@@ -1,0 +1,212 @@
+/* ==========================================================================
+   FIXORA — dashboard.css (Step 4 of 8)
+   One shell + one set of components shared by the Client, Professional and
+   Hardware Store dashboards. Same look as the public site: steel-black,
+   safety orange, cut corners, blueprint grid.
+
+   LOAD ORDER on every dashboard page:  styles.css  THEN  dashboard.css
+   (styles.css supplies the colour tokens, .btn, .badge, .field, .row, .thumb,
+    .price, .rating and the logo classes; this file only adds what dashboards need.)
+
+   MARKUP CONTRACT (dashboard.js in step 5 and the pages in steps 6-8 follow it):
+     <body class="dash" data-role="client | professional | store">
+       <div class="dash-scrim"></div>
+       <aside class="dash-sidebar">   .dash-brand · .dash-role · nav.dash-nav (a.dash-link[data-view]) · .dash-sidebar-foot
+       <div class="dash-main">
+         <header class="dash-topbar">  .dash-toggle · .dash-title · .dash-top-actions
+         <main class="dash-content">   section.view[id="view-…"][hidden] > .view-head + cards
+     Small screens: the sidebar slides in when it has .is-open (and .dash-scrim has .is-on).
+   ========================================================================== */
+
+/* 1. SHELL ---------------------------------------------------------------- */
+body.dash{min-height:100vh;background:var(--ink)}
+[hidden]{display:none!important}   /* anything marked hidden stays hidden, even when a class (like .empty) sets display */
+.dash-scrim{display:none}
+
+/* Sidebar: fixed on the left, hazard-stripe cap, scrolls on its own when the nav is long */
+.dash-sidebar{position:fixed;inset:0 auto 0 0;z-index:60;width:272px;display:flex;flex-direction:column;background:linear-gradient(180deg,#0d121a,#080b10);border-right:1px solid var(--line)}
+.dash-sidebar::before{content:"";flex:none;height:6px;background:repeating-linear-gradient(-45deg,var(--orange) 0 10px,#090b0f 10px 20px)}
+.dash-brand{--logo:38px;display:flex;align-items:center;gap:.7rem;padding:1.2rem 1.3rem .9rem}
+.dash-brand .brand-name{font:700 1.35rem/1 var(--display);letter-spacing:.08em;color:#fff}
+.dash-role{display:flex;align-items:center;gap:.55rem;width:fit-content;margin:0 1.3rem 1rem;padding:.45rem .85rem;font:600 .72rem/1 var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--orange);background:rgba(255,106,19,.1);box-shadow:inset 0 0 0 1px var(--line-hot);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.dash-nav{flex:1;overflow-y:auto;padding:.25rem .8rem 1rem;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.dash-nav ul{display:grid;gap:.2rem}
+.dash-link{position:relative;display:flex;align-items:center;gap:.8rem;width:100%;padding:.7rem .8rem;background:none;border:0;text-align:left;font:500 .95rem/1.2 var(--display);color:#c3cdda;transition:background .2s,color .2s}
+.dash-link .i{color:var(--muted);transition:color .2s}
+.dash-link:hover{background:rgba(255,255,255,.04);color:#fff}
+.dash-link:hover .i,.dash-link.is-active .i{color:var(--orange)}
+.dash-link.is-active{color:#fff;background:linear-gradient(90deg,rgba(255,106,19,.18),rgba(255,106,19,.02))}
+.dash-link.is-active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--orange)}
+.dash-count{margin-left:auto;padding:.2rem .5rem;border-radius:99px;font:700 .72rem/1 var(--display);color:#0a0c10;background:var(--orange)}
+.dash-sidebar-foot{display:grid;gap:.6rem;padding:1rem 1.2rem 1.2rem;border-top:1px solid var(--line)}
+.dash-user{display:flex;align-items:center;gap:.75rem;min-width:0;margin-bottom:.3rem}
+.dash-user>div{min-width:0}
+.dash-user b,.dash-user small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-user b{font:600 .95rem/1.2 var(--display)}
+.dash-user small{font-size:.8rem;color:var(--muted)}
+.avatar{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--orange),#c24a00);color:#0a0c10;font:700 .9rem/1 var(--display)}
+
+/* Main column: blueprint grid behind a sticky top bar */
+.dash-main{min-width:0;min-height:100vh;margin-left:272px;display:flex;flex-direction:column;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:48px 48px}
+.dash-topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:1rem;min-height:72px;padding:0 1.75rem;background:rgba(6,8,12,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.dash-topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,var(--orange),transparent 40%);opacity:.7}
+.dash-title{font:700 1.35rem/1.1 var(--display);letter-spacing:.02em}
+.dash-top-actions{margin-left:auto;display:flex;align-items:center;gap:.7rem}
+.dash-icon-btn,.dash-toggle{position:relative;display:grid;place-items:center;width:44px;height:44px;background:none;border:1px solid var(--line);color:#c3cdda;transition:color .2s,border-color .2s}
+.dash-icon-btn:hover,.dash-toggle:hover{color:var(--orange);border-color:var(--orange)}
+.dash-icon-btn .dot{position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 2px #0a0e14}
+.dash-toggle{display:none}
+.dash-content{flex:1;width:min(1280px,100%);padding:1.75rem}
+
+/* Views: dashboard.js shows one at a time by toggling [hidden] */
+.view[hidden]{display:none}
+.view:not([hidden]){animation:rise .35s cubic-bezier(.2,.7,.2,1) both}
+.view h2[tabindex="-1"]:focus{outline:none}   /* dashboard.js moves focus to the new heading for screen readers; no ring needed on plain text */
+.view-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:1.4rem}
+.view-head h2{font:700 1.65rem/1.15 var(--display)}
+.view-head p{margin-top:.3rem;color:var(--muted)}
+.view-actions{display:flex;flex-wrap:wrap;gap:.6rem}
+
+/* 2. LAYOUT HELPERS ---------------------------------------------------------- */
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin-bottom:1.25rem}
+.cols-2,.cols-3,.cols-2-1,.stack{display:grid;gap:1.25rem;margin-bottom:1.25rem}
+.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.cols-2-1{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.stack>*,.cols-2>*,.cols-3>*,.cols-2-1>*{min-width:0}
+
+/* 3. CARDS + STAT TILES (cut corner, hot edge, orange tab) ----------------------- */
+.card,.stat{position:relative;background:linear-gradient(180deg,var(--steel-2),var(--steel));box-shadow:inset 0 0 0 1px var(--line);clip-path:polygon(0 0,calc(100% - var(--cut)) 0,100% var(--cut),100% 100%,0 100%)}
+.card::before{content:"";position:absolute;left:0;top:0;width:38px;height:3px;background:var(--orange)}
+.card::after,.stat::after{content:"";position:absolute;top:0;right:0;width:var(--cut);height:var(--cut);pointer-events:none;background:linear-gradient(to top right,transparent calc(50% - .75px),var(--line-hot) calc(50% - .75px) calc(50% + .75px),transparent calc(50% + .75px))}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.1rem 1.4rem;border-bottom:1px solid var(--line)}
+.card-head h3{display:flex;align-items:center;gap:.6rem;font:600 1.1rem/1.2 var(--display)}
+.card-head h3 .i{color:var(--orange)}
+.card-head a,.link{font:500 .88rem var(--display);color:var(--orange)}
+.card-head a:hover,.link:hover{text-decoration:underline;text-underline-offset:4px}
+.card-body{padding:1.2rem 1.4rem}
+.card-body--flush{padding:0}
+.card-body .row:first-child{padding-top:0}
+.row--plain{grid-template-columns:1fr auto}
+.stat{display:grid;gap:.35rem;padding:1.2rem 1.3rem}
+.stat-label{display:flex;align-items:center;gap:.5rem;font:500 .78rem/1.2 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stat-label .i{color:var(--orange)}
+.stat-value{font:700 2rem/1.1 var(--display)}
+.stat-note{font-size:.85rem;color:var(--muted)}
+.up{color:var(--ok)}
+.down{color:#ff6b6b}
+
+/* 4. TABLES ------------------------------------------------------------------ */
+.table-wrap{overflow-x:auto}
+.data{width:100%;border-collapse:collapse;font-size:.93rem}
+.data th{padding:.8rem 1.4rem;text-align:left;white-space:nowrap;font:600 .72rem/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:rgba(255,255,255,.02);border-bottom:1px solid var(--line)}
+.data td{padding:.95rem 1.4rem;vertical-align:middle;border-bottom:1px solid rgba(38,49,64,.7)}
+.data tr:last-child td{border-bottom:0}
+.data tbody tr:hover td{background:rgba(255,106,19,.05)}
+.data .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cell-main{display:block;font:600 .98rem/1.25 var(--display)}
+.cell-sub{display:block;margin-top:.15rem;font-size:.85rem;color:var(--muted)}
+
+.cell-user{display:flex;align-items:center;gap:.75rem;min-width:0}
+.cell-user .avatar{width:36px;height:36px;font-size:.8rem}
+.form-actions{margin-top:1.1rem}
+.pay-action{margin:1.1rem 0 .9rem}
+.pro-loc{display:flex;align-items:center;gap:.4rem;margin:.2rem 0 1rem}
+
+/* 5. BADGES, BUTTONS, CHIPS, PROGRESS -------------------------------------------- */
+.badge--progress{color:var(--orange-2);background:rgba(255,106,19,.14)}
+.badge--pending{color:#ffd166;background:rgba(255,209,102,.13)}
+.badge--danger{color:#ff7b7b;background:rgba(255,107,107,.13)}
+.badge--muted{color:var(--muted);background:rgba(149,161,179,.14)}
+.btn-sm{min-height:38px;padding:.5rem 1.05rem;font-size:.86rem}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{padding:.5rem .95rem;border:0;background:none;box-shadow:inset 0 0 0 1px var(--line);font:500 .86rem/1 var(--display);color:#c3cdda;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);transition:background .2s,color .2s}
+.chip:hover{color:var(--orange);box-shadow:inset 0 0 0 1px var(--orange)}
+.chip.is-active{background:var(--orange);box-shadow:none;color:#0a0c10}
+.progress{height:8px;background:#0a0f16;box-shadow:inset 0 0 0 1px var(--line)}
+.progress>span{display:block;height:100%;width:var(--pct,50%);background:repeating-linear-gradient(-45deg,var(--orange) 0 8px,var(--orange-2) 8px 16px)}
+.progress-meta{display:flex;justify-content:space-between;gap:1rem;margin:.9rem 0 .45rem;font-size:.9rem}
+.progress-meta:first-child{margin-top:0}
+.progress-meta span:last-child{color:var(--muted)}
+
+/* 6. ACTIVITY FEED, EMPTY STATE, TOAST ------------------------------------------- */
+.feed-item{display:grid;grid-template-columns:auto 1fr auto;gap:.9rem;align-items:start;padding:.85rem 0;border-top:1px solid var(--line)}
+.feed-item:first-child{border-top:0;padding-top:0}
+.feed-dot{width:9px;height:9px;margin-top:.5rem;background:var(--orange);transform:rotate(45deg)}
+.feed-item p{font-size:.93rem}
+.feed-item time{font-size:.8rem;white-space:nowrap;color:var(--muted)}
+.empty{display:grid;justify-items:center;gap:.5rem;padding:2.2rem 1rem;text-align:center;color:var(--muted);border:1px dashed var(--line)}
+.empty .i{color:var(--line-hot)}
+.toast{position:fixed;right:1.25rem;bottom:1.25rem;z-index:90;max-width:min(92vw,360px);padding:.85rem 1.2rem;background:#101722;color:#fff;box-shadow:inset 0 0 0 1px var(--orange);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);animation:rise .3s both}
+.toast[hidden]{display:none}
+
+/* 7. MESSAGES (conversation list + thread) -------------------------------------------- */
+.chat{display:grid;grid-template-columns:320px minmax(0,1fr);min-height:540px}
+.chat-list{overflow-y:auto;border-right:1px solid var(--line)}
+.chat-item{display:flex;align-items:center;gap:.8rem;width:100%;padding:.9rem 1.1rem;border:0;border-bottom:1px solid var(--line);background:none;text-align:left}
+.chat-item:hover,.chat-item.is-active{background:rgba(255,106,19,.07)}
+.chat-item>div{min-width:0}
+.chat-item b,.chat-item small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-item b{font:600 .95rem/1.25 var(--display)}
+.chat-item small{font-size:.83rem;color:var(--muted)}
+.chat-thread{display:flex;flex-direction:column;min-width:0}
+.chat-log{flex:1;display:flex;flex-direction:column;gap:.7rem;padding:1.2rem;overflow-y:auto}
+.bubble{max-width:72%;padding:.7rem .95rem;font-size:.95rem;background:#18202c;box-shadow:inset 0 0 0 1px var(--line);clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%)}
+.bubble.me{align-self:flex-end;background:var(--orange);box-shadow:none;color:#0a0c10}
+.bubble time{display:block;margin-top:.25rem;font-size:.72rem;opacity:.65}
+.chat-compose{display:flex;gap:.6rem;padding:.9rem 1.1rem;border-top:1px solid var(--line)}
+.chat-compose .field{flex:1}
+
+/* 8. FORMS (profile, settings, product editors) --------------------------------------- */
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.form-grid .span-2{grid-column:1/-1}
+.field--area{align-items:flex-start;padding:.7rem .9rem}
+.field textarea{flex:1;min-height:110px;resize:vertical;background:none;border:0;outline:0;font:inherit;color:#fff}
+.field textarea::placeholder{color:var(--muted)}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem 0;border-top:1px solid var(--line)}
+.switch-row:first-child{border-top:0;padding-top:0}
+.switch-row small{display:block;color:var(--muted)}
+.switch{position:relative;flex:none;width:46px;height:26px}
+.switch input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.switch span{position:absolute;inset:0;pointer-events:none;background:#0a0f16;box-shadow:inset 0 0 0 1px var(--line);transition:background .2s,box-shadow .2s}
+.switch span::after{content:"";position:absolute;top:4px;left:4px;width:18px;height:18px;background:var(--muted);transition:transform .2s,background .2s}
+.switch input:checked+span{background:rgba(255,106,19,.22);box-shadow:inset 0 0 0 1px var(--orange)}
+.switch input:checked+span::after{transform:translateX(20px);background:var(--orange)}
+.switch input:focus-visible+span{outline:2px solid var(--orange);outline-offset:3px}
+
+/* 9. TILES (portfolio, products, store deals) + SIMPLE BAR CHART ------------------------ */
+.tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem}
+.tile{overflow:hidden;background:var(--steel);box-shadow:inset 0 0 0 1px var(--line)}
+.tile-img{display:grid;place-items:center;aspect-ratio:4/3;color:var(--line-hot);background:repeating-linear-gradient(135deg,#1b2431 0 8px,#141b26 8px 16px)}
+.tile-body{padding:.8rem .95rem}
+.tile-body b{display:block;font:600 .95rem/1.25 var(--display)}
+.tile-body span{font-size:.85rem;color:var(--muted)}
+.bars{display:flex;align-items:flex-end;gap:.7rem;height:200px}
+.bar{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;flex:1;gap:.45rem;height:100%;font-size:.78rem;color:var(--muted)}
+.bar i{display:block;width:100%;height:var(--h,50%);background:linear-gradient(180deg,var(--orange),#c24a00);clip-path:polygon(0 8px,8px 0,100% 0,100% 100%,0 100%)}
+
+/* 10. RESPONSIVE ------------------------------------------------------------------- */
+@media (max-width:1180px){
+  .stat-grid,.cols-3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cols-2-1{grid-template-columns:1fr}
+}
+@media (max-width:960px){            /* sidebar becomes a slide-in drawer */
+  .dash-sidebar{transform:translateX(-100%);transition:transform .3s}
+  .dash-sidebar.is-open{transform:none}
+  .dash-scrim{display:block;position:fixed;inset:0;z-index:55;opacity:0;pointer-events:none;background:rgba(3,5,8,.72);backdrop-filter:blur(3px);transition:opacity .3s}
+  .dash-scrim.is-on{opacity:1;pointer-events:auto}
+  .dash-main{margin-left:0}
+  .dash-toggle{display:grid}
+  .cols-2{grid-template-columns:1fr}
+  .chat{grid-template-columns:1fr}
+  .chat-list{max-height:220px;border-right:0;border-bottom:1px solid var(--line)}
+}
+@media (max-width:640px){
+  .dash-content{padding:1rem}
+  .dash-topbar{padding:0 1rem}
+  .dash-title{font-size:1.15rem}
+  .stat-grid,.cols-3,.form-grid{grid-template-columns:1fr}
+  .view-head h2{font-size:1.4rem}
+  .card-head,.card-body,.data th,.data td{padding-inline:1rem}
+  .bubble{max-width:88%}
+}
